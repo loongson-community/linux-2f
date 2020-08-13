@@ -10,11 +10,35 @@
 #include <linux/export.h>
 #include <linux/spinlock.h>
 #include <linux/delay.h>
+#include <linux/platform_device.h>
+
+#include <asm/bootinfo.h>
 
 #include "ec_kb3310b.h"
 
 static DEFINE_SPINLOCK(index_access_lock);
 static DEFINE_SPINLOCK(port_access_lock);
+
+#define EC_VER_LEN 64
+char ec_kb3310b_ver[EC_VER_LEN];
+EXPORT_SYMBOL_GPL(ec_kb3310b_ver);
+
+int __init ec_ver_probe(void)
+{
+	char *p;
+
+	p = strstr(arcs_cmdline, "EC_VER=");
+	if (!p)
+		return -ENODEV;
+	else {
+		strncpy(ec_kb3310b_ver, p, EC_VER_LEN);
+		p = strstr(ec_kb3310b_ver, " ");
+		if (p)
+			*p = '\0';
+	}
+
+	return 0;
+}
 
 unsigned char ec_read(unsigned short addr)
 {
@@ -123,3 +147,20 @@ int ec_get_event_num(void)
 	return value;
 }
 EXPORT_SYMBOL(ec_get_event_num);
+
+static int __init lemote2f_ec_platform_init(void)
+{
+	if (mips_machtype != MACH_LEMOTE_YL2F89)
+		return -ENODEV;
+
+	if (ec_ver_probe()) {
+		pr_info("Yeeloong: no EC_VER\n");
+		return -ENODEV;
+	}
+
+	platform_device_register_simple("yeeloong_laptop", -1, NULL, 0);
+
+	return 0;
+}
+
+arch_initcall(lemote2f_ec_platform_init);

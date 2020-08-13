@@ -30,6 +30,10 @@ cflags-$(CONFIG_CPU_LOONGSON2F) += \
 #
 cflags-$(CONFIG_CPU_LOONGSON2EF)	+= $(call as-option,-Wa$(comma)-mno-fix-loongson3-llsc,)
 
+# Some -march= flags enable MMI instructions, and GCC complains about that
+# support being enabled alongside -msoft-float. Thus explicitly disable MMI.
+cflags-y += $(call cc-option,-mno-loongson-mmi)
+
 # Enable the workarounds for Loongson2f
 ifdef CONFIG_CPU_LOONGSON2F_WORKAROUNDS
   ifeq ($(call as-option,-Wa$(comma)-mfix-loongson2f-nop,),)

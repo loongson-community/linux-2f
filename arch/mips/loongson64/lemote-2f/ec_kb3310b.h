@@ -15,6 +15,8 @@ extern int ec_query_seq(unsigned char cmd);
 extern int ec_query_event_num(void);
 extern int ec_get_event_num(void);
 
+extern char ec_kb3310b_ver[];
+
 typedef int (*sci_handler) (int status);
 extern sci_handler yeeloong_report_lid_status;
 
